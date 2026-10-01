@@ -1,0 +1,10 @@
+{
+  "description": "Guides two friends through personalized, intertwined London quests with witty prompts and shared adventures, enhancing their trip connection.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
