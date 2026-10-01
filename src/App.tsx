@@ -1,8 +1,41 @@
 import { useEffect, useState } from "react";
 
 type Player = "monica" | "zahin";
-type Screen = "today" | "detail" | "explore" | "journal" | "system";
+type Screen = "welcome" | "today" | "detail" | "companion" | "explore" | "journal";
 type Category = "main" | "side" | "shared";
+type PlayerProgress = Record<Player, Set<string>>;
+
+const PROGRESS_STORAGE_KEY = "until-five.quest-progress.v1";
+const PLAYER_STORAGE_KEY = "until-five.selected-player";
+
+function emptyPlayerProgress(): PlayerProgress {
+  return { monica: new Set(), zahin: new Set(["office", "spill"]) };
+}
+
+function parsePlayerProgress(value: string): PlayerProgress {
+  const parsed: unknown = JSON.parse(value);
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error("Saved quest progress has an invalid format.");
+  }
+
+  const record = parsed as Record<string, unknown>;
+  const readPlayer = (player: Player) => {
+    const quests = record[player];
+    if (!Array.isArray(quests) || !quests.every((quest) => typeof quest === "string")) {
+      throw new Error("Saved quest progress has an invalid format.");
+    }
+    return new Set<string>(quests);
+  };
+
+  return { monica: readPlayer("monica"), zahin: readPlayer("zahin") };
+}
+
+function serializePlayerProgress(progress: PlayerProgress): string {
+  return JSON.stringify({
+    monica: [...progress.monica],
+    zahin: [...progress.zahin],
+  });
+}
 
 type Quest = {
   id: string;
@@ -246,36 +279,65 @@ function QuestCard({
 function TopBar({ player, onSwitch }: { player: Player; onSwitch: () => void }) {
   return (
     <div className="topbar">
-      <button className="avatar" onClick={onSwitch} aria-label={`Switch to ${player === "monica" ? "Zahin" : "Monica"}`}>
+      <span className={`avatar avatar--static avatar--${player}`} aria-hidden="true">
         {player === "monica" ? "M" : "Z"}
-        <span className="avatar-switch">↔</span>
-      </button>
+      </span>
       <div className="questline">{player === "monica" ? "SURVIVE LONDON" : "SURVIVE THE WORKDAY"}</div>
+      <button className="role-switch" onClick={onSwitch}>Switch player</button>
     </div>
+  );
+}
+
+function Welcome({
+  onChoose,
+  storageError,
+}: {
+  onChoose: (player: Player) => void;
+  storageError: string | null;
+}) {
+  return (
+    <main className="welcome-page">
+      <div className="eyebrow">TWO QUESTS, ONE LONDON</div>
+      <h1 className="display-title">Until five<span className="title-dot">.</span></h1>
+      <p className="intro">Who’s playing today?</p>
+      {storageError && <p className="storage-message" role="alert">{storageError}</p>}
+      <div className="role-options">
+        <button className="role-card role-card--monica" onClick={() => onChoose("monica")}>
+          <span className="role-initial">M</span>
+          <span><strong>Monica</strong><small>Survive London</small></span>
+          <span className="role-arrow" aria-hidden="true">→</span>
+        </button>
+        <button className="role-card role-card--zahin" onClick={() => onChoose("zahin")}>
+          <span className="role-initial">Z</span>
+          <span><strong>Zahin</strong><small>Survive the workday</small></span>
+          <span className="role-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+      <p className="welcome-footnote">Your quests are saved in this browser. Choose a role to continue.</p>
+    </main>
   );
 }
 
 function BottomNav({
   player,
   screen,
-  go,
+  setScreen,
 }: {
   player: Player;
   screen: Screen;
-  go: (screen: Screen, player?: Player) => void;
+  setScreen: (screen: Screen) => void;
 }) {
-  const items: { label: string; icon: string; target: Screen; person?: Player }[] = [
-    { label: "Monica", icon: "compass", target: "today", person: "monica" },
-    { label: "Zahin", icon: "people", target: "today", person: "zahin" },
+  const items: { label: string; icon: string; target: Screen }[] = [
+    { label: "Today", icon: "clock", target: "today" },
+    { label: player === "monica" ? "Zahin" : "Monica", icon: "people", target: "companion" },
     { label: "Explore", icon: "bridge", target: "explore" },
     { label: "Journal", icon: "case", target: "journal" },
   ];
   return (
     <nav className={`bottom-nav bottom-nav--${player}`} aria-label="Main navigation">
       {items.map((item) => {
-        const active = item.person ? screen === "today" && player === item.person : screen === item.target;
         return (
-          <button className={`nav-item ${active ? "is-active" : ""}`} onClick={() => go(item.target, item.person)} key={item.label}>
+          <button className={`nav-item ${screen === item.target ? "is-active" : ""}`} onClick={() => setScreen(item.target)} key={item.label}>
             <span className="nav-icon"><Illustration name={item.icon} /></span>
             <span>{item.label}</span>
           </button>
@@ -299,16 +361,12 @@ function Today({
   player,
   completed,
   openQuest,
-  toggleQuest,
-  resetDemo,
-  openSystem,
+  onSwitchPlayer,
 }: {
   player: Player;
   completed: Set<string>;
   openQuest: (quest: Quest) => void;
-  toggleQuest: (id: string) => void;
-  resetDemo: () => void;
-  openSystem: () => void;
+  onSwitchPlayer: () => void;
 }) {
   const quests = player === "monica" ? monicaQuests : zahinQuests;
   const visibleCompleted = quests.filter((q) => completed.has(q.id)).length;
@@ -318,7 +376,7 @@ function Today({
 
   return (
     <main className="page page--today">
-      <TopBar player={player} onSwitch={() => window.dispatchEvent(new CustomEvent("switch-player"))} />
+      <TopBar player={player} onSwitch={onSwitchPlayer} />
       <div className="eyebrow">FRIDAY · LONDON</div>
       <div className="display-title">Start your day<span className="title-dot">.</span></div>
       <div className="progress" aria-label={`${visibleCompleted} of ${quests.length} quests complete`}>
@@ -384,46 +442,62 @@ function Today({
               />
             </div>
           </section>
-          <section className="feed-section">
-            <div className="section-title">From Zahin</div>
-            {standupDone ? (
-              <FeedRow art="people" text="Survived standup. Just." time="09:34" />
-            ) : (
-              <div className="empty-note">Quiet so far. He is probably pretending to listen.</div>
-            )}
-          </section>
         </>
       ) : (
-        <>
-          <section className="feed-section">
-            <div className="section-kicker">INTELLIGENCE FROM THE FIELD</div>
-            <div className="section-title">From Monica</div>
-            <FeedRow art="case" text="Touched down. London beware." time="08:31" />
-            {completed.has("coffee") && <FeedRow art="coffee" text="Coffee acquired." time="11:08" />}
-          </section>
-          <section className="host-controls">
-            <div className="section-kicker">FOR THE PERSON PULLING STRINGS</div>
-            <div className="section-title">Host controls</div>
-            <div className="control-list">
-              {quests.map((quest) => (
-                <div className="control-row" key={quest.id}>
-                  <span className="control-name"><Illustration name={quest.art} /> {quest.title}</span>
-                  <Button variant="small" onClick={() => toggleQuest(quest.id)}>
-                    {completed.has(quest.id) ? "Undo" : "Complete"}
-                  </Button>
-                </div>
-              ))}
-              <div className="control-row">
-                <span className="control-name"><Illustration name="biscuit" /> The Good Biscuits</span>
-                <Button variant="small">Unlock</Button>
-              </div>
-            </div>
-            <Button variant="quiet" className="reset-button" onClick={resetDemo}>Reset demo</Button>
-            <Button variant="quiet" className="system-link" onClick={openSystem}>Open design system</Button>
-          </section>
-        </>
+        <section className="feed-section">
+          <div className="section-title">Your day, one quest at a time</div>
+          <div className="empty-note">When you’re ready, open your next quest to see what’s in store.</div>
+        </section>
       )}
       <div className="bottom-spacer" />
+    </main>
+  );
+}
+
+function Companion({
+  player,
+  completed,
+}: {
+  player: Player;
+  completed: Set<string>;
+}) {
+  const companion = player === "monica" ? "zahin" : "monica";
+  const quests = companion === "monica" ? monicaQuests : zahinQuests;
+  const completedCount = quests.filter((quest) => completed.has(quest.id)).length;
+  const currentIndex = quests.findIndex((quest) => !completed.has(quest.id));
+
+  return (
+    <main className="page companion-page">
+      <div className="eyebrow">A PEEK AT THE OTHER QUESTLINE</div>
+      <h1 className="display-title">{companion === "monica" ? "Monica’s" : "Zahin’s"} day<span className="title-dot">.</span></h1>
+      <p className="intro">Progress is visible here, but only {companion} can complete these quests.</p>
+      <div className="companion-progress" aria-label={`${completedCount} of ${quests.length} quests complete`}>
+        <div className="progress">
+          {quests.map((quest) => (
+            <span className={completed.has(quest.id) ? "is-done" : ""} key={quest.id} />
+          ))}
+        </div>
+        <strong>{completedCount} of {quests.length} complete</strong>
+      </div>
+      <div className="quest-list companion-quest-list">
+        {quests.map((quest, index) => (
+          <QuestCard
+            key={quest.id}
+            quest={quest}
+            player={companion}
+            state={
+              completed.has(quest.id)
+                ? "done"
+                : index === currentIndex
+                  ? "current"
+                  : companion === "monica" && index >= (completed.has("arrive") ? 3 : 2)
+                    ? "mystery"
+                    : "next"
+            }
+          />
+        ))}
+      </div>
+      <p className="read-only-note">These quests are view-only in your role.</p>
     </main>
   );
 }
