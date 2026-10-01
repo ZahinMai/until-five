@@ -485,41 +485,53 @@ function Reveal({ quest, player, close }: { quest: Quest; player: Player; close:
   );
 }
 
+const londonStops = [
+  { id: "arrive", label: "Victoria Coach Station", x: 68, y: 300, labelX: 68, labelY: 328, anchor: "middle" },
+  { id: "lunch", label: "Victoria Place", x: 132, y: 278, labelX: 150, labelY: 284, anchor: "start" },
+  { id: "meet-zahin", label: "St Paul's Station", x: 300, y: 126, labelX: 380, labelY: 131, anchor: "end" },
+  { id: "monica-office", label: "LSEG office", x: 270, y: 174, labelX: 220, labelY: 178, anchor: "end" },
+  { id: "markets-talk", label: "Financial markets talk", x: 305, y: 222, labelX: 305, labelY: 249, anchor: "middle" },
+] as const;
+
 function Explore({ player, completed }: { player: Player; completed: Set<string> }) {
+  const currentStopIndex = londonStops.findIndex((stop) => !completed.has(stop.id));
+
   return (
     <main className="page explore-page">
       <div className="eyebrow">A VERY APPROXIMATE MAP</div>
       <div className="display-title">Explore<span className="title-dot">.</span></div>
       <div className={`map-card map-card--${player}`}>
-        <svg viewBox="0 0 390 490" role="img" aria-label="Stylised map of central London">
-          <path className="park park--one" d="M25 58c13-35 75-37 93-4s-2 67-42 72-66-25-51-68Z" />
-          <path className="park park--two" d="M286 74c16-23 64-20 75 9s-16 51-47 46-44-32-28-55Z" />
-          <path className="street" d="M40 170C120 115 238 128 352 92M30 310c103-24 215-16 335 30M91 25c35 151 13 318-16 439M278 23c-43 141-24 289 28 431" />
-          <path className="thames" d="M-20 271C58 221 103 345 187 288S310 210 415 271" />
-          <path className="route" d="M68 382C97 322 113 248 166 215S243 211 293 145" />
-          <g className={`marker ${completed.has("arrive") ? "marker--done" : "marker--current"}`}>
-            <circle cx="68" cy="382" r="16" />
-            <text x="68" y="388">{completed.has("arrive") ? "✓" : "1"}</text>
-          </g>
-          <g className="marker marker--current">
-            <circle cx="166" cy="215" r="16" />
-            <circle className="pulse-ring" cx="166" cy="215" r="24" />
-            <text x="166" y="221">2</text>
-          </g>
-          <g className="marker marker--unknown">
-            <circle cx="293" cy="145" r="20" />
-            <text x="293" y="152">?</text>
-          </g>
-          <g className="ghost-marker">
-            <circle cx="257" cy="322" r="6" />
-            <text x="269" y="326">your companion was here</text>
-          </g>
-          <text className="map-label" x="25" y="155">HYDE PARK</text>
-          <text className="river-label" x="213" y="286">THAMES</text>
+        <svg viewBox="0 0 390 490" role="img" aria-label="Schematic central London route from Victoria to St Paul's and LSEG">
+        <text className="map-label" x="40" y="250">VICTORIA</text>
+        <text className="map-label" x="267" y="93">THE CITY</text>
+        <path className="thames" d="M-15 390C85 384 145 396 235 390S330 384 405 390" />
+        <text className="river-label" x="195" y="394">THAMES</text>
+        <path className="route" d="M68 300L132 278C202 245 255 178 300 126L270 174L305 222" />
+        {londonStops.map((stop, index) => {
+            const done = completed.has(stop.id);
+            const current = index === currentStopIndex;
+            return (
+              <g
+                className={`marker ${done ? "marker--done" : current ? "marker--current" : "marker--unknown"}`}
+                key={stop.id}
+              >
+                <circle cx={stop.x} cy={stop.y} r="14" />
+                <text x={stop.x} y={stop.y + 5}>{done ? "✓" : index + 1}</text>
+                <text
+                  className="stop-label"
+                  x={stop.labelX}
+                  y={stop.labelY}
+                  textAnchor={stop.anchor}
+                >
+                  {stop.label}
+                </text>
+              </g>
+            );
+          })}
         </svg>
-        <div className="map-float">Friday’s trail · 2.4 mi</div>
+        <div className="map-float">Victoria → St Paul’s · not to scale, not in line with reality</div>
       </div>
-      <div className="map-caption"><span className="dashed-marker">?</span><span>Dashed circles mean you’re on your own.<br /><small>Character building, apparently.</small></span></div>
+      <div className="map-caption"><span className="dashed-marker">↗</span><span>Victoria Coach Station and Victoria Place sit close together; St Paul’s and LSEG are both in the City.<br /><small>This map is for fun - use google maps to navigate.</small></span></div>
     </main>
   );
 }
@@ -679,7 +691,7 @@ export default function App() {
           />
         )}
         {screen === "companion" && <Companion player={player} completed={companionCompleted} />}
-        {screen === "explore" && <Explore player={player} completed={completed} />}
+        {screen === "explore" && <Explore player={player} completed={progress.monica} />}
         {screen === "journal" && <Journal completed={completed} />}
         {screen !== "detail" && <BottomNav player={player} screen={screen} setScreen={setScreen} />}
         {reveal && <Reveal quest={reveal} player={player} close={() => { setReveal(null); setScreen("today"); }} />}

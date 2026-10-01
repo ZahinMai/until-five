@@ -5,7 +5,6 @@
   --color-sage: #b5b987;
   --color-burnt: #e7925b;
   --color-amber: #f2b05a;
-  --color-mauve: #a47a99;
   --color-silver: #a8acaa;
   --color-forest: #698464;
   --color-pink: #e7b496;
@@ -30,7 +29,7 @@
   --gold-dark: var(--color-burnt);
   --teal: var(--color-forest);
   --slate: var(--color-silver);
-  --mauve: var(--color-mauve);
+  --mauve: var(--old-gold);
   --mauve-deep: var(--color-ink-soft);
   --mauve-soft: var(--color-pink);
   --mauve-wash: #f1d8c4;
@@ -167,21 +166,17 @@ section { margin: 0 0 43px; }
 .unlock-pill, .reveal-card--zahin .unlock-pill { width: fit-content; margin: 0 auto 10px; background: var(--mauve-soft); color: var(--mauve-deep); border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 800; }
 
 .explore-page, .journal-page { padding-top: 47px; }
-.map-card { border-radius: 30px; overflow: hidden; background: #dce2df; height: 500px; margin-top: 28px; position: relative; border: 1px solid var(--hairline); box-shadow: 0 12px 30px rgba(55,60,66,.08); }
+.map-card { border-radius: 30px; overflow: hidden; background: #f1eee7; height: 500px; margin-top: 28px; position: relative; border: 1px solid var(--hairline); }
 .map-card svg { width: 100%; height: 100%; }
-.park { fill: var(--park); opacity: .72; }
-.street { fill: none; stroke: white; stroke-width: 7; stroke-linecap: round; opacity: .7; }
-.thames { fill: none; stroke: var(--thames); stroke-width: 47; stroke-linecap: round; }
-.route, .map-card--zahin .route { fill: none; stroke: var(--mauve); stroke-width: 4; stroke-dasharray: 9 8; stroke-linecap: round; }
-.marker circle, .map-card--zahin .marker circle { fill: var(--mauve); stroke: var(--paper); stroke-width: 5; }
-.marker text { text-anchor: middle; fill: var(--ink); font: 800 15px var(--font-sans); }
-.map-card--zahin .marker text { fill: white; }
-.marker--unknown circle { fill: rgba(245,242,237,.75); stroke: var(--slate); stroke-width: 3; stroke-dasharray: 6 5; }
-.marker--unknown text { fill: var(--slate); font-size: 22px; }
-.pulse-ring, .map-card--zahin .pulse-ring { fill: none !important; stroke: var(--mauve) !important; stroke-width: 2 !important; animation: map-pulse 2s ease-out infinite; transform-origin: 166px 215px; }
-.ghost-marker circle { fill: var(--teal); opacity: .65; }
-.ghost-marker text, .map-label, .river-label { font: 700 9px var(--font-sans); fill: var(--muted); letter-spacing: .08em; }
-.river-label { fill: #5e7b95; letter-spacing: .25em; }
+.thames { fill: none; stroke: #77b9d6; stroke-width: 54; stroke-linecap: round; }
+.route { fill: none; stroke: var(--mauve); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
+.marker circle { fill: var(--paper); stroke: var(--mauve); stroke-width: 3; }
+.marker--done circle, .marker--current circle { fill: var(--mauve); }
+.marker text { text-anchor: middle; fill: var(--carbon-black); font: 800 14px var(--font-sans); }
+.marker--done text, .marker--current text { fill: white; }
+.map-label, .river-label { font: 700 9px var(--font-sans); fill: var(--muted); letter-spacing: .08em; }
+.marker .stop-label { font: 700 8px var(--font-sans); fill: var(--carbon-black); letter-spacing: 0; }
+.river-label { fill: white; letter-spacing: .25em; text-anchor: middle; }
 .map-float { position: absolute; top: 15px; left: 15px; background: rgba(245,242,237,.9); padding: 9px 13px; border-radius: 999px; font-size: 11px; font-weight: 750; box-shadow: 0 3px 10px rgba(0,0,0,.08); }
 .map-caption { display: flex; gap: 13px; align-items: center; padding: 21px 8px; color: var(--muted); font-size: 13px; line-height: 1.35; }
 .map-caption small { opacity: .8; }
@@ -229,8 +224,6 @@ section { margin: 0 0 43px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes fade-in { from { opacity: 0; } }
 @keyframes pop-in { from { opacity: 0; transform: translateY(20px) scale(.9); } }
-@keyframes map-pulse { 0% { opacity: .8; transform: scale(.75); } 100% { opacity: 0; transform: scale(1.35); } }
-
 @media (min-width: 600px) {
   .phone-shell { margin: 24px 0; min-height: calc(100vh - 48px); border-radius: 30px; }
   .bottom-nav { position: fixed; width: 430px; left: 50%; transform: translateX(-50%); bottom: 24px; border-radius: 0 0 30px 30px; }
