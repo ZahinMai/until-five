@@ -9,7 +9,7 @@ const PROGRESS_STORAGE_KEY = "until-five.quest-progress.v1";
 const PLAYER_STORAGE_KEY = "until-five.selected-player";
 
 function emptyPlayerProgress(): PlayerProgress {
-  return { monica: new Set(), zahin: new Set(["office", "spill"]) };
+  return { monica: new Set(), zahin: new Set() };
 }
 
 function parsePlayerProgress(value: string): PlayerProgress {
@@ -54,63 +54,63 @@ type Quest = {
 const monicaQuests: Quest[] = [
   {
     id: "arrive",
-    title: "Arrive safely",
-    time: "08:30",
+    title: "Arrive in London",
+    time: "1pm",
     art: "case",
     category: "main",
-    clue: "Touch down, find your bag, and resist following the first person holding a cardboard sign.",
-    place: "Paddington Station",
-    action: "Made it in one piece",
-    result: "London has accepted your arrival.",
-    reward: "One slightly jet-lagged traveller, successfully imported.",
+    clue: "Get into London and make it to the coach station.",
+    place: "London coach station",
+    action: "Made it to London",
+    result: "London: reached.",
+    reward: "The adventure is officially in motion.",
   },
   {
-    id: "accommodation",
-    title: "Find accommodation",
-    time: "10:00",
-    art: "key",
-    category: "main",
-    clue: "A key awaits. So does the opportunity to put down that bag.",
-    place: "The little blue door",
-    action: "Keys acquired",
-    result: "You now have a London base.",
-    reward: "And, critically, somewhere to charge your phone.",
-  },
-  {
-    id: "coffee",
-    title: "First London coffee",
-    time: "11:00",
+    id: "lunch",
+    title: "Get food",
+    time: "1:30pm",
     art: "coffee",
     category: "main",
-    clue: "Find something warm, caffeinated and not from an airport machine.",
-    place: "Formative Coffee",
-    action: "Coffee acquired",
-    result: "The city is looking sharper already.",
-    reward: "A tiny cup of courage for the road ahead.",
+    clue: "Find something good to eat at Victoria Place.",
+    place: "Victoria Place",
+    action: "Food acquired",
+    result: "A well-earned food stop.",
+    reward: "Fuel for the rest of the adventure.",
   },
   {
-    id: "navigate",
-    title: "Navigate somewhere yourself",
-    time: "12:30",
-    art: "compass",
+    id: "meet-zahin",
+    title: "Meet Zahin",
+    time: "3pm",
+    art: "people",
     category: "main",
-    clue: "No tour guide. No rescue call. Pick a direction and make it look intentional.",
-    hint: "Follow the river until a very large clock starts judging you.",
-    action: "I found it",
-    result: "Against all odds: correctly located.",
-    reward: "A growing and possibly dangerous sense of confidence.",
+    clue: "Make it to St Paul's station to meet Zahin.",
+    place: "St Paul's station",
+    action: "Met up with Zahin",
+    result: "The team is back together.",
+    reward: "Two adventurers are better than one.",
   },
   {
-    id: "specific",
-    title: "The specific thing",
-    time: "14:30",
-    art: "eye",
+    id: "monica-office",
+    title: "Get into Zahin's office",
+    time: "3pm",
+    art: "key",
     category: "main",
-    clue: "You will know it when you see it. Probably.",
-    hint: "Look up. London hides its best bits above eye level.",
-    action: "Found the thing",
-    result: "Yes. That was the specific thing.",
-    reward: "No further explanation will be provided.",
+    clue: "Follow Zahin to his office at LSEG.",
+    place: "Zahin's office, LSEG",
+    action: "Made it into the office",
+    result: "Office access: secured.",
+    reward: "A brief pause before the main event.",
+  },
+  {
+    id: "markets-talk",
+    title: "Survive the financial markets talk",
+    time: "5pm",
+    art: "meeting",
+    category: "main",
+    clue: "You and Zahin: make it through the financial markets talk at LSEG.",
+    place: "LSEG",
+    action: "Survived the talk",
+    result: "Financial markets: survived.",
+    reward: "You both made it through. That's the important bit.",
   },
 ];
 
@@ -133,32 +133,6 @@ const zahinQuests: Quest[] = [
   result: id === "standup" ? "You said words. People nodded." : "A small workplace miracle.",
   reward: id === "standup" ? "Your companion has been informed that you remain alive." : "One step closer to freedom.",
 }));
-
-const sharedQuest: Quest = {
-  id: "river",
-  title: "Where the river bends",
-  time: "17:30",
-  art: "bridge",
-  category: "shared",
-  clue: "Two routes. One evening. Meet where London reflects itself.",
-  place: "South Bank",
-  action: "Found each other",
-  result: "The questlines converge.",
-  reward: "The good part of the day begins now.",
-};
-
-const sideQuest: Quest = {
-  id: "heroes",
-  title: "The Wall of Tiny Heroes",
-  time: "any time",
-  art: "hero",
-  category: "side",
-  clue: "There are heroes hiding in plain sight. They are much smaller than expected.",
-  hint: "Look near Seven Dials. Then look down.",
-  action: "Heroes found",
-  result: "Tiny, heroic, and worth the detour.",
-  reward: "A secret London detail for your collection.",
-};
 
 function Icon({ name }: { name: "clock" | "pin" | "lock" | "back" | "check" }) {
   const icons = { clock: "◷", pin: "⌖", lock: "▣", back: "←", check: "✓" };
@@ -240,13 +214,12 @@ function QuestCard({
   teaser,
 }: {
   quest: Quest;
-  state?: "current" | "done" | "next" | "mystery" | "locked" | "unlocked";
+  state?: "current" | "done" | "next" | "locked" | "unlocked";
   player: Player;
   onClick?: () => void;
   teaser?: string;
 }) {
   const categoryName = quest.category === "main" ? "Main quest" : quest.category === "side" ? "Side quest" : "Shared quest";
-  const isMystery = state === "mystery";
   const isLocked = state === "locked";
   return (
     <div className={`rail-item rail-item--${state}`}>
@@ -257,19 +230,19 @@ function QuestCard({
         disabled={!onClick}
       >
         <span className="quest-copy">
-          <span className="quest-title">{isLocked ? "Locked" : isMystery ? "A mystery quest" : quest.title}</span>
+          <span className="quest-title">{isLocked ? "Locked" : quest.title}</span>
           <span className="quest-label">
             {isLocked ? <Icon name="lock" /> : <span className="diamond">◆</span>}
             {isLocked ? teaser : categoryName}
           </span>
           <span className="quest-meta">
             <Icon name="clock" /> {quest.time}
-            {!isLocked && !isMystery && (quest.place ? " · pin on the map" : " · figure it out")}
+            {!isLocked && (quest.place ? " · pin on the map" : " · figure it out")}
           </span>
         </span>
         <span className={`quest-art quest-art--${quest.category}`}>
           <span className="hill" />
-          <span className="quest-emoji">{isMystery || isLocked ? "?" : <Illustration name={quest.art} />}</span>
+          <span className="quest-emoji">{isLocked ? "?" : <Illustration name={quest.art} />}</span>
         </span>
       </button>
     </div>
@@ -279,11 +252,14 @@ function QuestCard({
 function TopBar({ player, onSwitch }: { player: Player; onSwitch: () => void }) {
   return (
     <div className="topbar">
-      <span className={`avatar avatar--static avatar--${player}`} aria-hidden="true">
+      <button
+        className="avatar"
+        onClick={onSwitch}
+        aria-label="Switch player"
+      >
         {player === "monica" ? "M" : "Z"}
-      </span>
-      <div className="questline">{player === "monica" ? "SURVIVE LONDON" : "SURVIVE THE WORKDAY"}</div>
-      <button className="role-switch" onClick={onSwitch}>Switch player</button>
+        <span className="avatar-switch">↔</span>
+      </button>
     </div>
   );
 }
@@ -347,16 +323,6 @@ function BottomNav({
   );
 }
 
-function FeedRow({ art, text, time }: { art: string; text: string; time: string }) {
-  return (
-    <div className="feed-row">
-      <span className="feed-emoji"><Illustration name={art} /></span>
-      <span className="feed-text">{text}</span>
-      <span className="feed-time">{time}</span>
-    </div>
-  );
-}
-
 function Today({
   player,
   completed,
@@ -370,26 +336,16 @@ function Today({
 }) {
   const quests = player === "monica" ? monicaQuests : zahinQuests;
   const visibleCompleted = quests.filter((q) => completed.has(q.id)).length;
-  const monicaMysteryStarts = completed.has("arrive") ? 3 : 2;
-  const standupDone = completed.has("standup");
-  const sideUnlocked = completed.has("coffee");
 
   return (
     <main className="page page--today">
       <TopBar player={player} onSwitch={onSwitchPlayer} />
       <div className="eyebrow">FRIDAY · LONDON</div>
-      <div className="display-title">Start your day<span className="title-dot">.</span></div>
+      <div className="display-title">Please don&apos;t get lost<span className="title-dot">.</span></div>
       <div className="progress" aria-label={`${visibleCompleted} of ${quests.length} quests complete`}>
-        {quests.slice(0, player === "monica" ? 5 : 7).map((q) => (
+        {quests.map((q) => (
           <span className={completed.has(q.id) ? "is-done" : ""} key={q.id} />
         ))}
-      </div>
-      <div className="companion-strip">
-        <span className="live-dot" />
-        <div>
-          <strong>{player === "monica" ? (standupDone ? "Your companion survived standup." : "Your companion is still alive.") : "Your companion is roaming London."}</strong>
-          <span>{player === "monica" ? (standupDone ? "Words were said. Nobody panicked." : "Nothing alarming to report.") : "Last seen with unreasonable confidence."}</span>
-        </div>
       </div>
 
       <section>
@@ -400,13 +356,12 @@ function Today({
             const done = completed.has(quest.id);
             const currentIndex = quests.findIndex((q) => !completed.has(q.id));
             const isCurrent = index === currentIndex;
-            const mystery = player === "monica" && index >= monicaMysteryStarts;
             return (
               <QuestCard
                 key={quest.id}
                 quest={quest}
                 player={player}
-                state={done ? "done" : isCurrent ? "current" : mystery ? "mystery" : "next"}
+                state={done ? "done" : isCurrent ? "current" : "next"}
                 onClick={done || isCurrent ? () => openQuest(quest) : undefined}
               />
             );
@@ -414,41 +369,6 @@ function Today({
         </div>
       </section>
 
-      <section>
-        <div className="section-kicker">OPTIONAL MISCHIEF</div>
-        <div className="section-title">Side quests</div>
-        <div className="standalone-card">
-          <QuestCard
-            quest={sideQuest}
-            player={player}
-            state={sideUnlocked ? "unlocked" : "locked"}
-            teaser={player === "zahin" ? "The Good Biscuits are hiding." : "Something is waiting nearby."}
-            onClick={sideUnlocked ? () => openQuest(sideQuest) : undefined}
-          />
-        </div>
-      </section>
-
-      {player === "monica" ? (
-        <>
-          <section>
-            <div className="section-kicker">17:30 · NON-NEGOTIABLE</div>
-            <div className="section-title">Later, together</div>
-            <div className="standalone-card">
-              <QuestCard
-                quest={sharedQuest}
-                player={player}
-                state="locked"
-                teaser="Both journeys end in the same place."
-              />
-            </div>
-          </section>
-        </>
-      ) : (
-        <section className="feed-section">
-          <div className="section-title">Your day, one quest at a time</div>
-          <div className="empty-note">When you’re ready, open your next quest to see what’s in store.</div>
-        </section>
-      )}
       <div className="bottom-spacer" />
     </main>
   );
@@ -490,9 +410,7 @@ function Companion({
                 ? "done"
                 : index === currentIndex
                   ? "current"
-                  : companion === "monica" && index >= (completed.has("arrive") ? 3 : 2)
-                    ? "mystery"
-                    : "next"
+                  : "next"
             }
           />
         ))}
@@ -609,7 +527,7 @@ function Explore({ player, completed }: { player: Player; completed: Set<string>
 function Journal({ completed }: { completed: Set<string> }) {
   const found = [
     { art: "case", name: "Safe arrival", note: "Imported with only minor turbulence.", id: "arrive" },
-    { art: "coffee", name: "First coffee", note: "London began to make sense.", id: "coffee" },
+    { art: "coffee", name: "Lunch acquired", note: "Fuel for the rest of the adventure.", id: "lunch" },
     { art: "hero", name: "Tiny hero", note: "Small in stature. Huge in lore.", id: "heroes" },
   ];
   return (
@@ -640,100 +558,115 @@ function Journal({ completed }: { completed: Set<string> }) {
   );
 }
 
-function DesignSystem({ back }: { back: () => void }) {
-  return (
-    <main className="page system-page">
-      <button className="back-link" onClick={back}><Icon name="back" /> Host controls</button>
-      <div className="eyebrow">TWO QUESTS, ONE LONDON</div>
-      <div className="display-title">Field kit<span className="title-dot">.</span></div>
-      <p className="intro">The bits and pieces behind this small, suspiciously organised adventure.</p>
-      <section>
-        <div className="section-title">Colours</div>
-        <div className="swatches">
-          {["beige", "paper", "mauve", "teal", "slate", "blush", "thames", "park"].map((colour) => (
-            <div className={`swatch swatch--${colour}`} key={colour}><span />{colour}</div>
-          ))}
-        </div>
-      </section>
-      <section>
-        <div className="section-title">Type</div>
-        <div className="type-card"><div className="display-title">A grand plan.</div><p>Fraunces · display and section titles</p></div>
-        <div className="type-card sans-sample"><strong>Turn left at the good story.</strong><p>DM Sans · labels, directions and everything practical</p></div>
-      </section>
-      <section>
-        <div className="section-title">Quest states</div>
-        <div className="state-grid">
-          <div><span className="mini-dot mini-dot--current" />Current</div>
-          <div><span className="mini-dot mini-dot--done">✓</span>Done</div>
-          <div><span className="mini-dot" />Next</div>
-          <div><span className="mini-dot mini-dot--dashed">?</span>Mystery</div>
-        </div>
-      </section>
-      <section>
-        <div className="section-title">Buttons & markers</div>
-        <Button>Onwards</Button>
-        <Button variant="quiet">Need a hint?</Button>
-        <div className="marker-demo"><span className="map-dot">✓</span><span className="map-dot map-dot--pulse">2</span><span className="map-dot map-dot--dash">?</span></div>
-      </section>
-      <section>
-        <div className="section-title">Activity row</div>
-        <FeedRow art="coffee" text="Coffee acquired." time="11:08" />
-      </section>
-    </main>
-  );
-}
-
 export default function App() {
-  const [player, setPlayer] = useState<Player>("monica");
-  const [screen, setScreen] = useState<Screen>("today");
+  const [player, setPlayer] = useState<Player | null>(null);
+  const [screen, setScreen] = useState<Screen>("welcome");
   const [selected, setSelected] = useState<Quest | null>(null);
-  const [completed, setCompleted] = useState<Set<string>>(() => new Set(["office", "spill"]));
+  const [progress, setProgress] = useState<PlayerProgress>(emptyPlayerProgress);
+  const [storageReady, setStorageReady] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
   const [reveal, setReveal] = useState<Quest | null>(null);
 
-  const go = (target: Screen, person?: Player) => {
-    if (person) setPlayer(person);
-    setScreen(target);
+  useEffect(() => {
+    try {
+      const savedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
+      if (savedProgress) setProgress(parsePlayerProgress(savedProgress));
+
+      const savedPlayer = localStorage.getItem(PLAYER_STORAGE_KEY);
+      if (savedPlayer === "monica" || savedPlayer === "zahin") {
+        setPlayer(savedPlayer);
+        setScreen("today");
+      }
+    } catch (error) {
+      setStorageError(
+        error instanceof Error
+          ? `Could not read saved progress: ${error.message}`
+          : "Could not read saved progress from this browser.",
+      );
+    } finally {
+      setStorageReady(true);
+    }
+  }, []);
+
+  const choosePlayer = (chosenPlayer: Player) => {
+    try {
+      localStorage.setItem(PLAYER_STORAGE_KEY, chosenPlayer);
+      setStorageError(null);
+    } catch {
+      setStorageError("Your player could not be saved in this browser. Quest progress may not persist after closing it.");
+    }
+    setPlayer(chosenPlayer);
+    setScreen("today");
     setSelected(null);
   };
 
   const complete = (quest: Quest) => {
-    setCompleted((previous) => new Set(previous).add(quest.id));
+    if (!player || progress[player].has(quest.id)) return;
+    const next: PlayerProgress = {
+      ...progress,
+      [player]: new Set(progress[player]).add(quest.id),
+    };
+    try {
+      localStorage.setItem(PROGRESS_STORAGE_KEY, serializePlayerProgress(next));
+      setProgress(next);
+      setStorageError(null);
+    } catch {
+      setStorageError("Quest progress could not be saved in this browser. Check its storage settings and try again.");
+      return;
+    }
     setReveal(quest);
   };
 
-  const toggleQuest = (id: string) => {
-    setCompleted((previous) => {
-      const next = new Set(previous);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
   useEffect(() => {
-    const switchPlayer = () => {
-      setPlayer((current) => current === "monica" ? "zahin" : "monica");
-      setScreen("today");
-    };
     const openMap = () => setScreen("explore");
-    window.addEventListener("switch-player", switchPlayer);
+    const syncProgress = (event: StorageEvent) => {
+      if (event.key !== PROGRESS_STORAGE_KEY) return;
+      try {
+        setProgress(event.newValue ? parsePlayerProgress(event.newValue) : emptyPlayerProgress());
+        setStorageError(null);
+      } catch (error) {
+        setStorageError(
+          error instanceof Error
+            ? `Could not read updated quest progress: ${error.message}`
+            : "Could not read updated quest progress.",
+        );
+      }
+    };
     window.addEventListener("open-map", openMap);
+    window.addEventListener("storage", syncProgress);
     return () => {
-      window.removeEventListener("switch-player", switchPlayer);
       window.removeEventListener("open-map", openMap);
+      window.removeEventListener("storage", syncProgress);
     };
   }, []);
+
+  if (!storageReady) {
+    return <div className="app"><div className="phone-shell loading-screen">Getting your quests…</div></div>;
+  }
+
+  if (screen === "welcome" || !player) {
+    return (
+      <div className="app">
+        <div className="phone-shell">
+          <Welcome onChoose={choosePlayer} storageError={storageError} />
+        </div>
+      </div>
+    );
+  }
+
+  const completed = progress[player];
+  const companionCompleted = progress[player === "monica" ? "zahin" : "monica"];
 
   return (
     <div className={`app app--${player}`}>
       <div className="phone-shell">
+        {storageError && <div className="storage-banner" role="status">{storageError}</div>}
         {screen === "today" && (
           <Today
             player={player}
             completed={completed}
             openQuest={(quest) => { setSelected(quest); setScreen("detail"); }}
-            toggleQuest={toggleQuest}
-            resetDemo={() => setCompleted(new Set(["office", "spill"]))}
-            openSystem={() => setScreen("system")}
+            onSwitchPlayer={() => setScreen("welcome")}
           />
         )}
         {screen === "detail" && selected && (
@@ -745,10 +678,10 @@ export default function App() {
             complete={() => complete(selected)}
           />
         )}
+        {screen === "companion" && <Companion player={player} completed={companionCompleted} />}
         {screen === "explore" && <Explore player={player} completed={completed} />}
         {screen === "journal" && <Journal completed={completed} />}
-        {screen === "system" && <DesignSystem back={() => setScreen("today")} />}
-        {screen !== "detail" && screen !== "system" && <BottomNav player={player} screen={screen} go={go} />}
+        {screen !== "detail" && <BottomNav player={player} screen={screen} setScreen={setScreen} />}
         {reveal && <Reveal quest={reveal} player={player} close={() => { setReveal(null); setScreen("today"); }} />}
       </div>
     </div>
